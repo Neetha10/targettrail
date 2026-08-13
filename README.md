@@ -39,3 +39,7 @@ data/contracts/                    Auditable opportunity-record format
 infra/                             AWS SAM deployment template
 docs/                              Architecture and data-source guidance
 ```
+
+### Agent modules
+
+`backend/src/agents/` keeps the responsibilities separate: `identity-agent`, `mechanism-agent`, `trial-agent`, `evidence-agent`, `safety-agent`, `ranking-agent`, and `report-agent`. The Lambda handler invokes `agent-orchestrator.mjs`, which coordinates these modules.

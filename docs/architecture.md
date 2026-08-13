@@ -10,6 +10,8 @@ Drug input
   -> ranking/report agent (auditable opportunity record)
 ```
 
+Each responsibility has its own backend module in `backend/src/agents/`; `agent-orchestrator.mjs` assembles their outputs into a citation-first opportunity report.
+
 ## Live sources today
 
 - Open Targets GraphQL: target records, associations, and linked drug candidates

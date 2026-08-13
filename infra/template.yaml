@@ -46,3 +46,9 @@ Resources:
             ApiId: !Ref TargetTrailApi
             Path: /evidence
             Method: POST
+        Research:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref TargetTrailApi
+            Path: /research
+            Method: POST
