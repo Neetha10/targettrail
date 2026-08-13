@@ -14,7 +14,45 @@
         <div class="nav-meta"><span class="status-dot"></span><span id="live-status">Live public-data workspace</span></div>
       </nav>
 
-      <section class="hero" id="top">
+      <div class="workspace-tabs" role="tablist" aria-label="TargetTrail workspaces">
+        <button class="workspace-tab active" type="button" role="tab" aria-selected="true" aria-controls="pipeline-tab" data-tab="pipeline-tab"><span>01</span> Repurposing pipeline</button>
+        <button class="workspace-tab" type="button" role="tab" aria-selected="false" aria-controls="target-tab" data-tab="target-tab"><span>02</span> Target intelligence</button>
+      </div>
+
+      <section class="pipeline-workspace" id="pipeline-tab" role="tabpanel">
+        <section class="pipeline-hero" id="top">
+          <p class="eyebrow">DRUG REPURPOSING WORKSPACE</p>
+          <h1>Find the next<br /><em>indication trail.</em></h1>
+          <p class="intro">Start with an existing drug. TargetTrail maps its mechanism, finds clinical analogs, detects indication gaps, and ranks evidence-backed research opportunities.</p>
+          <div class="pipeline-input-card">
+            <div><span class="input-label">START WITH A DRUG OR BATCH</span><strong>Input → canonical drug ID → evidence-backed candidate indications</strong></div>
+            <button type="button" class="open-target-tab">Explore target evidence <span>→</span></button>
+          </div>
+        </section>
+
+        <section class="pipeline-section">
+          <div class="section-title"><div><p class="eyebrow">HOW TARGETTRAIL REASONS</p><h3>Evidence pipeline</h3></div><span class="evidence-note">Each stage adds a check, citation, or confidence signal</span></div>
+          <div class="pipeline-stages">
+            <article class="pipeline-stage"><span class="stage-number">A</span><h4>Resolve inputs</h4><p>Map every drug name to a canonical ChEMBL / DrugBank ID so all source records connect reliably.</p><span class="stage-source">ChEMBL · DrugBank</span></article>
+            <article class="pipeline-stage"><span class="stage-number">B</span><h4>Expand mechanism</h4><p>Find direct target analogs first, then optional pathway or gene-family neighbors at lower confidence.</p><span class="stage-source">Open Targets · ChEMBL</span></article>
+            <article class="pipeline-stage"><span class="stage-number">C</span><h4>Find indication delta</h4><p>Compare analog approvals and trials against the original drug to find indication gaps worth checking.</p><span class="stage-source">FDA · ClinicalTrials.gov</span></article>
+            <article class="pipeline-stage"><span class="stage-number">D</span><h4>Validate plausibility</h4><p>Check whether the original target independently associates with the potential disease.</p><span class="stage-source">Open Targets</span></article>
+            <article class="pipeline-stage"><span class="stage-number">E</span><h4>Cross-check literature</h4><p>Flag existing proposals, trials, negative evidence, and mechanism-based contraindications.</p><span class="stage-source">PubMed / NCBI</span></article>
+            <article class="pipeline-stage"><span class="stage-number">F</span><h4>Score & rank</h4><p>Combine target overlap, analog maturity, association strength, novelty, and safety compatibility.</p><span class="stage-source">Explainable composite</span></article>
+            <article class="pipeline-stage report-stage"><span class="stage-number">G</span><h4>Generate report</h4><p>One auditable row per drug–disease hypothesis with rationale, citations, score, and confidence tier.</p><span class="stage-source">Evidence ledger</span></article>
+          </div>
+        </section>
+
+        <section class="score-blueprint panel">
+          <div><p class="eyebrow">COMPOSITE OPPORTUNITY SCORE</p><h3>What will determine the ranking?</h3><p class="score-copy">The model prioritizes research hypotheses; it never predicts clinical efficacy or recommends treatment.</p></div>
+          <div class="score-weights">
+            <div><strong>30%</strong><span>Target overlap</span></div><div><strong>25%</strong><span>Analog maturity</span></div><div><strong>25%</strong><span>Target–disease evidence</span></div><div><strong>10%</strong><span>Novelty</span></div><div><strong>10%</strong><span>Safety compatibility</span></div>
+          </div>
+        </section>
+      </section>
+
+      <section class="target-workspace hidden" id="target-tab" role="tabpanel">
+      <section class="hero">
         <p class="eyebrow">TARGET-TO-TRIAL INTELLIGENCE</p>
         <h1>Follow the clinical<br /><em>trail of a target.</em></h1>
         <p class="intro">See how a biological target has performed across drugs, indications, and trial phases — with the evidence behind every signal.</p>
@@ -80,6 +118,7 @@
           <div class="opportunity-copy"><p class="eyebrow">NEXT QUESTION</p><h3>Where might this target go next?</h3><p id="opportunity-text"></p></div>
           <div class="opportunity-score"><span>Opportunity signal</span><strong id="opportunity-score">74</strong><em id="opportunity-label">Promising to investigate</em></div>
         </section>
+      </section>
       </section>
     </main>
     <footer><span>TargetTrail is a research-prioritization prototype.</span> It does not provide clinical recommendations or establish efficacy.</footer>

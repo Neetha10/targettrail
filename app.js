@@ -197,5 +197,12 @@ input.addEventListener('input', () => { input.setCustomValidity(''); showSuggest
 suggestions.addEventListener('click', e => { const key = e.target.closest('button')?.dataset.key; if (key) { input.value = targets[key].name; document.querySelector('#search-form').requestSubmit(); } });
 document.querySelector('.quick-targets').addEventListener('click', e => { const target = e.target.dataset.target; if (target) { input.value = target; document.querySelector('#search-form').requestSubmit(); } });
 document.addEventListener('click', e => { if (!e.target.closest('.input-wrap')) suggestions.innerHTML = ''; });
+document.querySelectorAll('.workspace-tab').forEach(tab => tab.addEventListener('click', () => {
+  const destination = tab.dataset.tab;
+  document.querySelectorAll('.workspace-tab').forEach(item => { const active = item === tab; item.classList.toggle('active', active); item.setAttribute('aria-selected', active); });
+  document.querySelectorAll('[role="tabpanel"]').forEach(panel => panel.classList.toggle('hidden', panel.id !== destination));
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}));
+document.querySelectorAll('.open-target-tab').forEach(button => button.addEventListener('click', () => document.querySelector('[data-tab="target-tab"]').click()));
 renderTarget(targets.JAK1);
 loadLiveTarget('JAK1').catch(() => { document.querySelector('#live-status').textContent = 'Live request unavailable — demo fallback shown'; });
