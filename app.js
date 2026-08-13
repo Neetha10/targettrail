@@ -46,6 +46,11 @@ const targets = {
 const OPEN_TARGETS_URL = 'https://api.platform.opentargets.org/api/v4/graphql';
 const CLINICAL_TRIALS_URL = 'https://clinicaltrials.gov/api/v2/studies';
 const TARGET_ALIASES = { 'PD1': 'PDCD1', 'PD-1': 'PDCD1', 'IL17A': 'IL17A', 'IL-17A': 'IL17A' };
+const DRUG_TO_TARGET = {
+  BARICITINIB: 'JAK1', UPADACITINIB: 'JAK1', ABROCITINIB: 'JAK1', FILGOTINIB: 'JAK1',
+  SECUKINUMAB: 'IL17A', IXEKIZUMAB: 'IL17A', BIMEKIZUMAB: 'IL17A',
+  PEMBROLIZUMAB: 'PDCD1', NIVOLUMAB: 'PDCD1', CEMIPLIMAB: 'PDCD1'
+};
 const clean = value => value.toUpperCase().replace(/[^A-Z0-9]/g, '');
 const state = { current: 'JAK1' };
 const input = document.querySelector('#target-input');
@@ -204,5 +209,20 @@ document.querySelectorAll('.workspace-tab').forEach(tab => tab.addEventListener(
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }));
 document.querySelectorAll('.open-target-tab').forEach(button => button.addEventListener('click', () => document.querySelector('[data-tab="target-tab"]').click()));
+document.querySelector('#drug-search-form').addEventListener('submit', event => {
+  event.preventDefault();
+  const drugInput = document.querySelector('#drug-input');
+  const helper = document.querySelector('#drug-helper');
+  const target = DRUG_TO_TARGET[clean(drugInput.value)];
+  if (!target) {
+    helper.textContent = 'This demo supports Baricitinib, Secukinumab, Pembrolizumab, and related examples.';
+    drugInput.focus();
+    return;
+  }
+  helper.textContent = `Resolved ${drugInput.value.trim()} → ${target}. Opening live target evidence…`;
+  document.querySelector('[data-tab="target-tab"]').click();
+  input.value = target;
+  document.querySelector('#search-form').requestSubmit();
+});
 renderTarget(targets.JAK1);
 loadLiveTarget('JAK1').catch(() => { document.querySelector('#live-status').textContent = 'Live request unavailable — demo fallback shown'; });

@@ -24,10 +24,11 @@
           <p class="eyebrow">DRUG REPURPOSING WORKSPACE</p>
           <h1>Find the next<br /><em>indication trail.</em></h1>
           <p class="intro">Start with an existing drug. TargetTrail maps its mechanism, finds clinical analogs, detects indication gaps, and ranks evidence-backed research opportunities.</p>
-          <div class="pipeline-input-card">
-            <div><span class="input-label">START WITH A DRUG OR BATCH</span><strong>Input → canonical drug ID → evidence-backed candidate indications</strong></div>
-            <button type="button" class="open-target-tab">Explore target evidence <span>→</span></button>
-          </div>
+          <form class="pipeline-input-card" id="drug-search-form">
+            <div class="pipeline-input-copy"><span class="input-label">START WITH A DRUG</span><strong>Input → canonical drug ID → evidence-backed candidate indications</strong></div>
+            <div class="drug-input-wrap"><label class="sr-only" for="drug-input">Drug name</label><input id="drug-input" autocomplete="off" placeholder="e.g. Baricitinib" /><span id="drug-helper">Try Baricitinib, Secukinumab, or Pembrolizumab</span></div>
+            <button type="submit">Start analysis <span>→</span></button>
+          </form>
         </section>
 
         <section class="pipeline-section">
