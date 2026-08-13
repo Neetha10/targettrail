@@ -115,7 +115,7 @@ async function findDrug(searchTerm) {
 async function getDrugTargets(chemblId) {
   const query = `query DrugTargets($chemblId: String!) {
     drug(chemblId: $chemblId) {
-      id name tradeNames
+      id name
       mechanismsOfAction {
         rows { actionType mechanismOfAction targets { id approvedSymbol approvedName } }
       }
