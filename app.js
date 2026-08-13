@@ -66,7 +66,14 @@ function renderTarget(targetOrKey) {
   document.querySelector('#maturity-score').textContent = t.score;
   document.querySelector('.score-ring').style.background = `conic-gradient(var(--teal) 0 ${t.score}%, #d4ddcf 0)`;
   document.querySelector('#maturity-label').textContent = t.label;
-  document.querySelector('#summary-grid').innerHTML = t.stats.map(([value,label,delta]) => `<article class="stat"><strong>${value}</strong><span>${label}</span><div class="delta">${delta}</div></article>`).join('');
+  document.querySelector('#summary-grid').innerHTML = t.stats.map(([value,label,delta], index) => {
+    const content = `<strong>${value}</strong><span>${label}</span><div class="delta">${delta}</div>`;
+    return `<article class="stat">${index === 0 ? `<button class="stat-button" type="button" id="open-drug-drawer" aria-haspopup="dialog">${content}</button>` : content}</article>`;
+  }).join('');
+  document.querySelector('#drawer-list').innerHTML = (t.linkedDrugs || []).map(drug => `<a class="linked-drug" href="https://platform.opentargets.org/drug/${drug.id}" target="_blank" rel="noreferrer"><div class="linked-drug-top"><strong>${drug.name}</strong><span class="linked-drug-stage">${drug.stage}</span></div><p>${drug.indications?.length ? drug.indications.join(' · ') : 'No linked indication listed'}</p></a>`).join('') || '<p class="drawer-note">No linked drug details were returned for this target.</p>';
+  document.querySelector('#drug-drawer-title').textContent = `${t.name} linked drugs`;
+  document.querySelector('#drug-drawer-subtitle').textContent = `${t.linkedDrugs?.length || 0} records displayed. Each name opens its Open Targets source page.`;
+  document.querySelector('#open-drug-drawer')?.addEventListener('click', openDrugDrawer);
   const diseaseRows = t.diseases || [];
   document.querySelector('#disease-grid').innerHTML = diseaseRows.slice(0, 5).map(([name, score, diseaseId], index) => {
     const label = score >= 70 ? 'Strong evidence association' : score >= 50 ? 'Moderate evidence association' : 'Emerging evidence association';
@@ -171,6 +178,12 @@ function liveTargetToView(target, trials) {
   return {
     name: target.approvedSymbol, fullName: target.approvedName || target.approvedSymbol, targetId: target.id, type: 'LIVE OPEN TARGETS RECORD', score: targetScore, label, live: true,
     stats: [[String(candidateCount), 'target-linked drugs', 'Open Targets clinical candidates'], [String(trials.length), 'registry trials returned', `ClinicalTrials.gov: ${target.approvedSymbol}`], [String(phase3), 'Phase 3 candidates', 'Open Targets maximum stage'], [String(approvals), 'approved candidates', 'Open Targets maximum stage']],
+    linkedDrugs: candidates.map(row => ({
+      id: row.drug?.id,
+      name: row.drug?.name || 'Unnamed drug',
+      stage: stageLabel(row.maxClinicalStage),
+      indications: [...new Set((row.diseases || []).map(item => item.disease?.name).filter(Boolean))].slice(0, 3)
+    })),
     phases: [['Phase 1', trialCounts['Phase 1']], ['Phase 2', trialCounts['Phase 2']], ['Phase 3', trialCounts['Phase 3']], ['Other', trialCounts.Other]],
     diseases: associations.map(row => [row.disease.name, Math.round(row.score * 100), row.disease.id]),
     note: `Live ClinicalTrials.gov search returned ${trials.length} records for “${target.approvedSymbol}”. Trial counts are registry search results, not efficacy outcomes.`,
@@ -193,6 +206,18 @@ async function loadLiveTarget(searchTerm) {
   const trials = await getClinicalTrials(target.approvedSymbol);
   renderTarget(liveTargetToView(target, trials));
 }
+
+function openDrugDrawer() {
+  const drawer = document.querySelector('#drug-drawer');
+  drawer.classList.add('open'); drawer.setAttribute('aria-hidden', 'false');
+  document.querySelector('#drawer-backdrop').hidden = false;
+  document.querySelector('#drawer-close').focus();
+}
+function closeDrugDrawer() {
+  const drawer = document.querySelector('#drug-drawer');
+  drawer.classList.remove('open'); drawer.setAttribute('aria-hidden', 'true');
+  document.querySelector('#drawer-backdrop').hidden = true;
+}
 function showSuggestions() {
   const q = clean(input.value);
   const matches = Object.entries(targets).filter(([key,t]) => key.includes(q) || clean(t.name).includes(q) || clean(t.fullName).includes(q));
@@ -210,6 +235,9 @@ document.querySelectorAll('.workspace-tab').forEach(tab => tab.addEventListener(
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }));
 document.querySelectorAll('.open-target-tab').forEach(button => button.addEventListener('click', () => document.querySelector('[data-tab="target-tab"]').click()));
+document.querySelector('#drawer-close').addEventListener('click', closeDrugDrawer);
+document.querySelector('#drawer-backdrop').addEventListener('click', closeDrugDrawer);
+document.addEventListener('keydown', event => { if (event.key === 'Escape') closeDrugDrawer(); });
 document.querySelector('#drug-search-form').addEventListener('submit', event => {
   event.preventDefault();
   const drugInput = document.querySelector('#drug-input');
