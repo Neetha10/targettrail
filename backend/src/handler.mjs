@@ -1,6 +1,7 @@
 import { rankOpportunity } from './agents/ranking-agent.mjs';
 import { collectEvidence } from './agents/evidence-agent.mjs';
 import { runResearchAgents } from './agent-orchestrator.mjs';
+import { runStrandsResearchAgent } from './strands-research-agent.mjs';
 
 const json = (statusCode, body) => ({
   statusCode,
@@ -16,8 +17,8 @@ const json = (statusCode, body) => ({
  * Intended routes:
  * - POST /score: invokes the Ranking Agent's transparent composite score
  * - POST /evidence: calls Bright Data server-side and returns original public URLs + snippets
- * - POST /research: runs the deterministic multi-agent report workflow; accepts
- *   normalized Convoke context collected by an authenticated MCP client
+ * - POST /research: runs the deterministic report workflow, or a Strands evidence
+ *   synthesis when `orchestrator` is `strands`; accepts normalized Convoke context
  */
 export async function handler(event) {
   const path = event.rawPath || event.path || '/';
@@ -45,7 +46,12 @@ export async function handler(event) {
   }
 
   if (path.endsWith('/research')) {
-    try { return json(200, runResearchAgents(body)); }
+    try {
+      const result = body.orchestrator === 'strands'
+        ? await runStrandsResearchAgent(body)
+        : runResearchAgents(body);
+      return json(200, result);
+    }
     catch (error) { return json(400, { error: error.message }); }
   }
 

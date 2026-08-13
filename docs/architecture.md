@@ -9,6 +9,7 @@ Drug input
   -> Convoke context agent (program pipeline and catalysts)
   -> safety agent (FDA label evidence)
   -> ranking/report agent (auditable opportunity record)
+  -> optional Strands synthesis agent (Bedrock-backed narrative from the immutable ledger)
 ```
 
 Each responsibility has its own backend module in `backend/src/agents/`; `agent-orchestrator.mjs` assembles their outputs into a citation-first opportunity report.
@@ -31,5 +32,7 @@ Convoke is queried by an authenticated MCP client, not by the browser or Lambda.
 ## Score
 
 `0.30 target overlap + 0.25 analog maturity + 0.25 target-disease evidence + 0.10 novelty + 0.10 safety compatibility`
+
+When callers request `orchestrator: "strands"`, `strands-research-agent.mjs` runs a Strands SDK agent with a read-only ledger tool. It may synthesize the source-backed narrative but cannot modify the deterministic score components.
 
 Scores prioritize research hypotheses. They do not predict efficacy or provide treatment advice.

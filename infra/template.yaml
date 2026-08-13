@@ -10,6 +10,10 @@ Parameters:
   BrightDataZone:
     Type: String
     Description: Name of the configured Bright Data Web Unlocker zone.
+  StrandsBedrockModelId:
+    Type: String
+    Default: ''
+    Description: Optional Amazon Bedrock model ID for Strands research synthesis. Leave blank to use the SDK default.
 
 Resources:
   NovaTargetApi:
@@ -33,6 +37,14 @@ Resources:
           ALLOWED_ORIGIN: '*'
           BRIGHT_DATA_API_TOKEN: !Ref BrightDataApiToken
           BRIGHT_DATA_ZONE: !Ref BrightDataZone
+          STRANDS_BEDROCK_MODEL_ID: !Ref StrandsBedrockModelId
+      Policies:
+        - Statement:
+            Effect: Allow
+            Action:
+              - bedrock:InvokeModel
+              - bedrock:InvokeModelWithResponseStream
+            Resource: '*'
       Events:
         Score:
           Type: HttpApi

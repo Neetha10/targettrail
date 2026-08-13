@@ -3,5 +3,8 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "AWS Lambda backend for NovaTarget research-agent orchestration."
+  "description": "AWS Lambda backend for NovaTarget research-agent orchestration.",
+  "dependencies": {
+    "@strands-agents/sdk": "^1.7.0"
+  }
 }

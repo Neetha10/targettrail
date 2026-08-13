@@ -1,6 +1,6 @@
 const targets = {
   JAK1: {
-    name: 'JAK1', fullName: 'Janus kinase 1', type: 'KINASE TARGET', score: 91, label: 'Highly validated',
+    name: 'JAK1', geneSymbol: 'JAK1', targetId: 'ENSG00000162434', fullName: 'Janus kinase 1', type: 'KINASE TARGET', score: 91, label: 'Highly validated',
     stats: [['14', 'target-linked drugs', 'Across approved & investigational'], ['48', 'completed trials', 'In the evidence set'], ['9', 'Phase 3 trials', 'Across 5 indications'], ['4', 'approved indications', 'Strong clinical precedent']],
     phases: [['Phase 1', 9], ['Phase 2', 18], ['Phase 3', 9], ['Approved', 4]],
     diseases: [['rheumatoid arthritis', 71, 'MONDO_0008383'], ['atopic eczema', 60, 'MONDO_0004980'], ['myelofibrosis', 59, 'MONDO_0044903'], ['alopecia areata', 55, 'MONDO_0005340'], ['ulcerative colitis', 51, 'MONDO_0005101']],
@@ -14,7 +14,7 @@ const targets = {
     opportunity: 'The target has strong precedent in immune-mediated disease. Prioritize indications with a shared inflammatory mechanism but limited late-stage pipeline activity.', opportunityScore: 74, opportunityLabel: 'Promising to investigate'
   },
   IL17A: {
-    name: 'IL-17A', fullName: 'Interleukin 17A', type: 'CYTOKINE TARGET', score: 88, label: 'Highly validated',
+    name: 'IL-17A', geneSymbol: 'IL17A', targetId: 'ENSG00000112115', fullName: 'Interleukin 17A', type: 'CYTOKINE TARGET', score: 88, label: 'Highly validated',
     stats: [['8', 'target-linked drugs', 'Across approved & investigational'], ['36', 'completed trials', 'In the evidence set'], ['8', 'Phase 3 trials', 'Across 4 indications'], ['3', 'approved indications', 'Strong dermatology precedent']],
     phases: [['Phase 1', 6], ['Phase 2', 12], ['Phase 3', 8], ['Approved', 3]],
     diseases: [['psoriasis vulgaris', 82, 'EFO_0000676'], ['psoriatic arthritis', 75, 'MONDO_0005014'], ['ankylosing spondylitis', 70, 'MONDO_0005301'], ['hidradenitis suppurativa', 61, 'MONDO_0006559'], ['inflammatory bowel disease', 54, 'EFO_0003767']],
@@ -28,7 +28,7 @@ const targets = {
     opportunity: 'Strong dermatology precedent suggests looking for type 17-driven conditions where disease burden is high but target-specific development remains sparse.', opportunityScore: 69, opportunityLabel: 'Promising to investigate'
   },
   PDCD1: {
-    name: 'PD-1', fullName: 'Programmed cell death protein 1', type: 'IMMUNE CHECKPOINT TARGET', score: 96, label: 'Extensively validated',
+    name: 'PD-1', geneSymbol: 'PDCD1', targetId: 'ENSG00000188389', fullName: 'Programmed cell death protein 1', type: 'IMMUNE CHECKPOINT TARGET', score: 96, label: 'Extensively validated',
     stats: [['19', 'target-linked drugs', 'Across approved & investigational'], ['82', 'completed trials', 'In the evidence set'], ['24', 'Phase 3 trials', 'Across oncology indications'], ['14', 'approved indications', 'Broad oncology precedent']],
     phases: [['Phase 1', 12], ['Phase 2', 28], ['Phase 3', 24], ['Approved', 14]],
     diseases: [['cutaneous melanoma', 86, 'MONDO_0005105'], ['non-small cell lung carcinoma', 83, 'MONDO_0005233'], ['renal cell carcinoma', 80, 'MONDO_0005086'], ['Hodgkin lymphoma', 78, 'MONDO_0004952'], ['hepatocellular carcinoma', 73, 'MONDO_0007256']],
@@ -51,12 +51,30 @@ const state = { current: 'JAK1' };
 const input = document.querySelector('#target-input');
 const suggestions = document.querySelector('#suggestions');
 
+function renderGeneReferences(target) {
+  const container = document.querySelector('#gene-references');
+  const symbol = target.geneSymbol || target.approvedSymbol;
+  const ensemblId = target.targetId;
+  if (!symbol) {
+    container.hidden = true;
+    container.innerHTML = '';
+    return;
+  }
+  const links = [];
+  if (ensemblId) links.push(`<a href="https://www.ensembl.org/Homo_sapiens/Gene/Summary?g=${encodeURIComponent(ensemblId)}" target="_blank" rel="noreferrer">Ensembl ${ensemblId} ↗</a>`);
+  links.push(`<a href="https://www.ncbi.nlm.nih.gov/gene/?term=${encodeURIComponent(`${symbol}[sym] AND Homo sapiens[orgn]`)}" target="_blank" rel="noreferrer">NCBI Gene ${symbol} ↗</a>`);
+  links.push(`<a href="https://www.uniprot.org/uniprotkb?query=${encodeURIComponent(`gene_exact:${symbol} AND organism_id:9606`)}" target="_blank" rel="noreferrer">UniProt ${symbol} ↗</a>`);
+  container.hidden = false;
+  container.innerHTML = `<span>GENE REFERENCES</span>${links.join('')}`;
+}
+
 function renderTarget(targetOrKey) {
   const t = typeof targetOrKey === 'string' ? targets[targetOrKey] : targetOrKey;
   if (!t) return;
   state.current = t.name; input.value = t.name;
   document.querySelector('#target-type').textContent = t.type;
   document.querySelector('#target-name').innerHTML = `${t.name} <span>${t.fullName}</span>`;
+  renderGeneReferences(t);
   document.querySelector('#maturity-score').textContent = t.score;
   document.querySelector('.score-ring').style.background = `conic-gradient(var(--teal) 0 ${t.score}%, #d4ddcf 0)`;
   document.querySelector('#maturity-label').textContent = t.label;
@@ -198,7 +216,7 @@ function liveTargetToView(target, trials) {
   ];
   while (evidence.length < 3) evidence.push(['CLINICALTRIALS.GOV', 'LIVE SEARCH', 'No additional registry result in this search', 'Try a target synonym or inspect the Open Targets linked-drug list.', 'ClinicalTrials.gov search', `https://clinicaltrials.gov/search?term=${encodeURIComponent(target.approvedSymbol)}`]);
   return {
-    name: target.approvedSymbol, fullName: target.approvedName || target.approvedSymbol, targetId: target.id, type: 'LIVE OPEN TARGETS RECORD', score: targetScore, label, live: true,
+    name: target.approvedSymbol, geneSymbol: target.approvedSymbol, fullName: target.approvedName || target.approvedSymbol, targetId: target.id, type: 'LIVE OPEN TARGETS RECORD', score: targetScore, label, live: true,
     stats: [[String(candidateCount), 'target-linked drugs', 'Open Targets clinical candidates'], [String(trials.length), 'registry trials returned', `ClinicalTrials.gov: ${target.approvedSymbol}`], [String(phase3), 'Phase 3 candidates', 'Open Targets maximum stage'], [String(approvals), 'approved candidates', 'Open Targets maximum stage']],
     linkedDrugs: candidates.map(row => ({
       id: row.drug?.id,

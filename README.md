@@ -49,3 +49,9 @@ docs/                              Architecture and data-source guidance
 An authenticated Convoke MCP client queries the **Program Tracker** and **Catalyst Calendar**, then sends only normalized results in the `convoke` field to `POST /research`. `convoke-agent.mjs` preserves drug, indication, stage, organization, target, trial, and catalyst context in the final report as `marketContext`.
 
 Convoke credentials remain in the MCP client and are never placed in the browser, Lambda environment, or repository. Market context is intentionally not a component of the composite opportunity score: program activity and catalyst timing can guide research review, but do not independently establish efficacy, safety, or patient unmet need.
+
+### Strands research-synthesis agent
+
+NovaTarget uses the [Strands Agents TypeScript SDK](https://strandsagents.com/docs/user-guide/quickstart/typescript/) for optional evidence synthesis in the Lambda backend. Send `POST /research` with `"orchestrator": "strands"` to run a Strands agent backed by Amazon Bedrock. The agent must retrieve NovaTarget's immutable evidence ledger before summarizing it; it returns a concise narrative and the supplied source URLs.
+
+The score remains deterministic. Strands never calculates, changes, or explains a clinical-efficacy score. Configure `STRANDS_BEDROCK_MODEL_ID` (or allow the SDK default), enable the model in Bedrock, and deploy the SAM template so the Lambda can invoke the model. Run `npm install` inside `backend/` before `sam build`.
