@@ -1,0 +1,6 @@
+{
+  "name": "@targettrail/research-api",
+  "private": true,
+  "type": "module",
+  "description": "AWS Lambda backend for TargetTrail research-agent orchestration."
+}

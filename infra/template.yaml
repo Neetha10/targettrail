@@ -1,0 +1,38 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: TargetTrail research-agent API
+
+Resources:
+  TargetTrailApi:
+    Type: AWS::Serverless::HttpApi
+    Properties:
+      CorsConfiguration:
+        AllowMethods: [POST, OPTIONS]
+        AllowHeaders: [Content-Type]
+        AllowOrigins: ['*']
+
+  ResearchAgentFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ../backend/
+      Handler: src/handler.handler
+      Runtime: nodejs20.x
+      Timeout: 30
+      MemorySize: 512
+      Environment:
+        Variables:
+          ALLOWED_ORIGIN: '*'
+          # Store Bright Data credentials in AWS Secrets Manager before enabling /evidence.
+      Events:
+        Score:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref TargetTrailApi
+            Path: /score
+            Method: POST
+        Evidence:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref TargetTrailApi
+            Path: /evidence
+            Method: POST

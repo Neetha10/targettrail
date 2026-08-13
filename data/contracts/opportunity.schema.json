@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "TargetTrail opportunity record",
+  "type": "object",
+  "required": ["drug", "candidateDisease", "compositeScore", "confidenceTier", "evidence"],
+  "properties": {
+    "drug": { "type": "string" },
+    "candidateDisease": { "type": "string" },
+    "compositeScore": { "type": "integer", "minimum": 0, "maximum": 100 },
+    "confidenceTier": { "enum": ["High-priority hypothesis", "Promising - needs validation", "Exploratory signal"] },
+    "mechanismRationale": { "type": "string" },
+    "evidence": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["source", "url", "claim"],
+        "properties": {
+          "source": { "type": "string" },
+          "url": { "type": "string", "format": "uri" },
+          "claim": { "type": "string" }
+        }
+      }
+    }
+  }
+}

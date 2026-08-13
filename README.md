@@ -25,3 +25,13 @@ This hackathon prototype is a research-prioritization interface only—not clini
 - Open Targets / ChEMBL: target–drug–disease relationships
 - Convoke: unmet-need signals
 - Bright Data: monitored public pipeline and regulatory updates
+
+## Project structure
+
+```text
+index.html / styles.css / app.js   Frontend experience and live public-data lookups
+backend/                           AWS Lambda research-agent API and scoring function
+data/contracts/                    Auditable opportunity-record format
+infra/                             AWS SAM deployment template
+docs/                              Architecture and data-source guidance
+```
