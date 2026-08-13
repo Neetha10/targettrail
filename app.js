@@ -3,7 +3,7 @@ const targets = {
     name: 'JAK1', fullName: 'Janus kinase 1', type: 'KINASE TARGET', score: 91, label: 'Highly validated',
     stats: [['14', 'target-linked drugs', 'Across approved & investigational'], ['48', 'completed trials', 'In the evidence set'], ['9', 'Phase 3 trials', 'Across 5 indications'], ['4', 'approved indications', 'Strong clinical precedent']],
     phases: [['Phase 1', 9], ['Phase 2', 18], ['Phase 3', 9], ['Approved', 4]],
-    diseases: [['rheumatoid arthritis', 71], ['atopic eczema', 60], ['myelofibrosis', 59], ['alopecia areata', 55], ['ulcerative colitis', 51]],
+    diseases: [['rheumatoid arthritis', 71, 'MONDO_0008383'], ['atopic eczema', 60, 'MONDO_0004980'], ['myelofibrosis', 59, 'MONDO_0044903'], ['alopecia areata', 55, 'MONDO_0005340'], ['ulcerative colitis', 51, 'MONDO_0005101']],
     note: 'Trials shown are representative target-linked records; production data should refresh from public registries.',
     signals: [['Validated in immune-mediated disease', 'Repeated late-stage activity across inflammatory and autoimmune indications.'], ['Breadth across therapeutic areas', 'Clinical evidence spans dermatology, rheumatology, and gastroenterology.'], ['Safety pattern to assess', 'Class-related infection and thrombosis risk warrants indication-specific review.']],
     evidence: [
@@ -17,7 +17,7 @@ const targets = {
     name: 'IL-17A', fullName: 'Interleukin 17A', type: 'CYTOKINE TARGET', score: 88, label: 'Highly validated',
     stats: [['8', 'target-linked drugs', 'Across approved & investigational'], ['36', 'completed trials', 'In the evidence set'], ['8', 'Phase 3 trials', 'Across 4 indications'], ['3', 'approved indications', 'Strong dermatology precedent']],
     phases: [['Phase 1', 6], ['Phase 2', 12], ['Phase 3', 8], ['Approved', 3]],
-    diseases: [['psoriasis vulgaris', 82], ['psoriatic arthritis', 75], ['ankylosing spondylitis', 70], ['hidradenitis suppurativa', 61], ['inflammatory bowel disease', 54]],
+    diseases: [['psoriasis vulgaris', 82, 'EFO_0000676'], ['psoriatic arthritis', 75, 'MONDO_0005014'], ['ankylosing spondylitis', 70, 'MONDO_0005301'], ['hidradenitis suppurativa', 61, 'MONDO_0006559'], ['inflammatory bowel disease', 54, 'EFO_0003767']],
     note: 'Signals show a well-established target, especially in dermatology and rheumatology.',
     signals: [['High confidence in psoriasis', 'Multiple IL-17 inhibitors have reached approval in plaque psoriasis.'], ['Clear pathway relevance', 'IL-17A is a central driver of type 17 inflammation in several immune diseases.'], ['Mixed disease translation', 'Success in one inflammatory disease does not ensure efficacy in another; trial context matters.']],
     evidence: [
@@ -31,7 +31,7 @@ const targets = {
     name: 'PD-1', fullName: 'Programmed cell death protein 1', type: 'IMMUNE CHECKPOINT TARGET', score: 96, label: 'Extensively validated',
     stats: [['19', 'target-linked drugs', 'Across approved & investigational'], ['82', 'completed trials', 'In the evidence set'], ['24', 'Phase 3 trials', 'Across oncology indications'], ['14', 'approved indications', 'Broad oncology precedent']],
     phases: [['Phase 1', 12], ['Phase 2', 28], ['Phase 3', 24], ['Approved', 14]],
-    diseases: [['cutaneous melanoma', 86], ['non-small cell lung carcinoma', 83], ['renal cell carcinoma', 80], ['Hodgkin lymphoma', 78], ['hepatocellular carcinoma', 73]],
+    diseases: [['cutaneous melanoma', 86, 'MONDO_0005105'], ['non-small cell lung carcinoma', 83, 'MONDO_0005233'], ['renal cell carcinoma', 80, 'MONDO_0005086'], ['Hodgkin lymphoma', 78, 'MONDO_0004952'], ['hepatocellular carcinoma', 73, 'MONDO_0007256']],
     note: 'PD-1 is one of the most clinically mature immune-oncology targets.',
     signals: [['Broad oncology validation', 'Checkpoint inhibition has produced approvals in multiple tumor types.'], ['Combination-led development', 'Much of the next-wave evidence is generated in rational combinations and earlier disease settings.'], ['Immune-related safety profile', 'Risk assessment must account for immune-mediated adverse events.']],
     evidence: [
@@ -62,9 +62,10 @@ function renderTarget(targetOrKey) {
   document.querySelector('#maturity-label').textContent = t.label;
   document.querySelector('#summary-grid').innerHTML = t.stats.map(([value,label,delta]) => `<article class="stat"><strong>${value}</strong><span>${label}</span><div class="delta">${delta}</div></article>`).join('');
   const diseaseRows = t.diseases || [];
-  document.querySelector('#disease-grid').innerHTML = diseaseRows.slice(0, 5).map(([name, score], index) => {
+  document.querySelector('#disease-grid').innerHTML = diseaseRows.slice(0, 5).map(([name, score, diseaseId], index) => {
     const label = score >= 70 ? 'Strong evidence association' : score >= 50 ? 'Moderate evidence association' : 'Emerging evidence association';
-    return `<article class="disease-card"><span class="disease-rank">#${index + 1} ASSOCIATION</span><strong class="disease-score">${score}<small>/100</small></strong><div class="disease-name">${name}</div><div class="association-label">${label}</div><div class="association-bar"><span style="width:${score}%"></span></div></article>`;
+    const citationUrl = t.targetId && diseaseId ? `https://platform.opentargets.org/evidence/${t.targetId}/${diseaseId}` : `https://platform.opentargets.org/search?q=${encodeURIComponent(name)}`;
+    return `<a class="disease-card" href="${citationUrl}" target="_blank" rel="noreferrer" aria-label="View Open Targets evidence for ${name}"><span class="disease-rank">#${index + 1} ASSOCIATION</span><strong class="disease-score">${score}<small>/100</small></strong><div class="disease-name">${name}</div><div class="association-label">${label}</div><div class="association-bar"><span style="width:${score}%"></span></div><div class="association-citation">View source ↗</div></a>`;
   }).join('') || '<article class="disease-card"><div class="disease-name">No disease associations were returned.</div></article>';
   const max = Math.max(1, ...t.phases.map(([,v])=>v));
   document.querySelector('#phase-chart').innerHTML = t.phases.map(([label,value]) => `<div class="bar-item"><span class="bar-value">${value}</span><div class="bar" style="height:${(value/max)*125}px"></div><span class="bar-label">${label}</span></div>`).join('');
@@ -162,10 +163,10 @@ function liveTargetToView(target, trials) {
   ];
   while (evidence.length < 3) evidence.push(['CLINICALTRIALS.GOV', 'LIVE SEARCH', 'No additional registry result in this search', 'Try a target synonym or inspect the Open Targets linked-drug list.', 'ClinicalTrials.gov search', `https://clinicaltrials.gov/search?term=${encodeURIComponent(target.approvedSymbol)}`]);
   return {
-    name: target.approvedSymbol, fullName: target.approvedName || target.approvedSymbol, type: 'LIVE OPEN TARGETS RECORD', score: targetScore, label, live: true,
+    name: target.approvedSymbol, fullName: target.approvedName || target.approvedSymbol, targetId: target.id, type: 'LIVE OPEN TARGETS RECORD', score: targetScore, label, live: true,
     stats: [[String(candidateCount), 'target-linked drugs', 'Open Targets clinical candidates'], [String(trials.length), 'registry trials returned', `ClinicalTrials.gov: ${target.approvedSymbol}`], [String(phase3), 'Phase 3 candidates', 'Open Targets maximum stage'], [String(approvals), 'approved candidates', 'Open Targets maximum stage']],
     phases: [['Phase 1', trialCounts['Phase 1']], ['Phase 2', trialCounts['Phase 2']], ['Phase 3', trialCounts['Phase 3']], ['Other', trialCounts.Other]],
-    diseases: associations.map(row => [row.disease.name, Math.round(row.score * 100)]),
+    diseases: associations.map(row => [row.disease.name, Math.round(row.score * 100), row.disease.id]),
     note: `Live ClinicalTrials.gov search returned ${trials.length} records for “${target.approvedSymbol}”. Trial counts are registry search results, not efficacy outcomes.`,
     signals: [
       ['Target–disease evidence', topAssociation ? `${topAssociation.disease?.name || 'Top disease'} has the highest returned Open Targets association score (${Math.round(topAssociation.score * 100)}/100).` : 'No target-disease associations returned.'],
