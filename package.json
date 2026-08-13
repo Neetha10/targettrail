@@ -6,7 +6,7 @@
   "scripts": {
     "start": "python3 -m http.server 4173",
     "check": "node --check app.js && node --check backend/src/handler.mjs",
-    "test": "node --test backend/test/scoring.test.mjs"
+    "test": "node --test backend/test/*.test.mjs"
   },
   "engines": {
     "node": ">=20"

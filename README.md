@@ -26,6 +26,10 @@ This hackathon prototype is a research-prioritization interface only—not clini
 - Convoke: unmet-need signals
 - Bright Data: monitored public pipeline and regulatory updates
 
+### Bright Data Evidence Agent
+
+The Lambda endpoint `POST /evidence` uses Bright Data Web Unlocker server-side. Send public source URLs only; the response preserves each original URL and a short extract for citation. Deploy with `BrightDataApiToken` and `BrightDataZone` parameters. Never expose either value in `app.js`, `.env`, or GitHub.
+
 ## Project structure
 
 ```text

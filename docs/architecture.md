@@ -17,7 +17,9 @@ Drug input
 
 ## Backend-only sources
 
-Bright Data must run behind the Lambda API. Its token is a secret and must never be sent to the browser or committed to Git. The collector returns only publicly available source metadata, original URLs, and short evidence excerpts.
+Bright Data runs behind the Lambda Evidence Agent. Its token is a secret and must never be sent to the browser or committed to Git. `POST /evidence` accepts up to five HTTPS public URLs and sends each to Bright Data Web Unlocker. It returns only original URL, title, collection time, purpose, and a short source excerpt.
+
+Use Bright Data for public company pipeline pages, investor updates, regulatory announcements, and trial press releases. Use direct official APIs for Open Targets, ClinicalTrials.gov, PubMed, and FDA labels whenever available.
 
 ## Score
 

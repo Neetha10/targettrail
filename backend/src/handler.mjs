@@ -1,4 +1,5 @@
 import { scoreOpportunity } from './scoring.mjs';
+import { collectBrightDataEvidence } from './bright-data-evidence.mjs';
 
 const json = (statusCode, body) => ({
   statusCode,
@@ -13,7 +14,7 @@ const json = (statusCode, body) => ({
  * AWS Lambda entry point.
  * Intended routes:
  * - POST /score: calculates TargetTrail's transparent composite score
- * - POST /evidence: later, calls Bright Data server-side and returns original public URLs + snippets
+ * - POST /evidence: calls Bright Data server-side and returns original public URLs + snippets
  */
 export async function handler(event) {
   const path = event.rawPath || event.path || '/';
@@ -27,12 +28,17 @@ export async function handler(event) {
   }
 
   if (path.endsWith('/evidence')) {
-    if (!process.env.BRIGHT_DATA_API_TOKEN) {
-      return json(503, { error: 'Bright Data is not configured. Set BRIGHT_DATA_API_TOKEN in AWS Secrets Manager or Lambda environment variables.' });
+    try {
+      const evidence = await collectBrightDataEvidence({
+        sources: body.sources,
+        token: process.env.BRIGHT_DATA_API_TOKEN,
+        zone: process.env.BRIGHT_DATA_ZONE
+      });
+      return json(200, { evidence, disclaimer: 'Collected excerpts are source context. They are not independent clinical conclusions.' });
+    } catch (error) {
+      const status = /token and zone|required|maximum|HTTPS|Local URLs/.test(error.message) ? 400 : 502;
+      return json(status, { error: error.message });
     }
-    // Keep Bright Data access server-side. Return only source URL, title, date, and a short quoted snippet.
-    // Add the Bright Data Web Scraper API request here after the hackathon workspace supplies its dataset/zone.
-    return json(501, { error: 'Bright Data collector is configured as the next integration step.', query: body });
   }
 
   return json(404, { error: 'Route not found' });
