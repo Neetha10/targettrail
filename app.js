@@ -46,12 +46,6 @@ const targets = {
 const OPEN_TARGETS_URL = 'https://api.platform.opentargets.org/api/v4/graphql';
 const CLINICAL_TRIALS_URL = 'https://clinicaltrials.gov/api/v2/studies';
 const TARGET_ALIASES = { 'PD1': 'PDCD1', 'PD-1': 'PDCD1', 'IL17A': 'IL17A', 'IL-17A': 'IL17A' };
-const DRUG_TO_TARGET = {
-  HUMIRA: 'TNF', ADALIMUMAB: 'TNF', INFLIXIMAB: 'TNF', ETANERCEPT: 'TNF',
-  BARICITINIB: 'JAK1', UPADACITINIB: 'JAK1', ABROCITINIB: 'JAK1', FILGOTINIB: 'JAK1',
-  SECUKINUMAB: 'IL17A', IXEKIZUMAB: 'IL17A', BIMEKIZUMAB: 'IL17A',
-  PEMBROLIZUMAB: 'PDCD1', NIVOLUMAB: 'PDCD1', CEMIPLIMAB: 'PDCD1'
-};
 const clean = value => value.toUpperCase().replace(/[^A-Z0-9]/g, '');
 const state = { current: 'JAK1' };
 const input = document.querySelector('#target-input');
@@ -108,6 +102,34 @@ async function findTarget(searchTerm) {
   }`;
   const data = await openTargetsQuery(query, { queryString: TARGET_ALIASES[searchTerm.toUpperCase()] || searchTerm });
   return data.search.hits.find(hit => hit.entity === 'target') || null;
+}
+
+async function findDrug(searchTerm) {
+  const query = `query FindDrug($queryString: String!) {
+    search(queryString: $queryString, entityNames: ["drug"]) { hits { id entity name description } }
+  }`;
+  const data = await openTargetsQuery(query, { queryString: searchTerm });
+  return data.search.hits.find(hit => hit.entity === 'drug') || null;
+}
+
+async function getDrugTargets(chemblId) {
+  const query = `query DrugTargets($chemblId: String!) {
+    drug(chemblId: $chemblId) {
+      id name tradeNames
+      mechanismsOfAction {
+        rows { actionType mechanismOfAction targets { id approvedSymbol approvedName } }
+      }
+    }
+  }`;
+  const data = await openTargetsQuery(query, { chemblId });
+  const drug = data.drug;
+  if (!drug) throw new Error('Open Targets did not return a drug record');
+  const targets = drug.mechanismsOfAction?.rows.flatMap(row => (row.targets || []).map(target => ({
+    ...target, actionType: row.actionType, mechanism: row.mechanismOfAction
+  }))) || [];
+  const uniqueTargets = [...new Map(targets.filter(target => target.id).map(target => [target.id, target])).values()];
+  if (!uniqueTargets.length) throw new Error(`No target mechanism was returned for ${drug.name}`);
+  return { drug, targets: uniqueTargets };
 }
 
 async function getTargetRecord(ensemblId) {
@@ -238,20 +260,34 @@ document.querySelectorAll('.open-target-tab').forEach(button => button.addEventL
 document.querySelector('#drawer-close').addEventListener('click', closeDrugDrawer);
 document.querySelector('#drawer-backdrop').addEventListener('click', closeDrugDrawer);
 document.addEventListener('keydown', event => { if (event.key === 'Escape') closeDrugDrawer(); });
-document.querySelector('#drug-search-form').addEventListener('submit', event => {
+document.querySelector('#drug-search-form').addEventListener('submit', async event => {
   event.preventDefault();
   const drugInput = document.querySelector('#drug-input');
   const helper = document.querySelector('#drug-helper');
-  const target = DRUG_TO_TARGET[clean(drugInput.value)];
-  if (!target) {
-    helper.textContent = 'This demo supports Humira, Baricitinib, Secukinumab, Pembrolizumab, and related examples.';
+  const button = event.currentTarget.querySelector('button[type="submit"]');
+  const requested = drugInput.value.trim();
+  if (!requested) {
+    helper.textContent = 'Enter a drug name to start a live Open Targets lookup.';
     drugInput.focus();
     return;
   }
-  helper.textContent = `Resolved ${drugInput.value.trim()} → ${target}. Opening live target evidence…`;
-  document.querySelector('[data-tab="target-tab"]').click();
-  input.value = target;
-  document.querySelector('#search-form').requestSubmit();
+  button.disabled = true; button.innerHTML = 'Resolving…';
+  helper.textContent = 'Searching live Open Targets drug and mechanism records…';
+  try {
+    const hit = await findDrug(requested);
+    if (!hit) throw new Error(`No Open Targets drug record found for “${requested}”`);
+    const { drug, targets } = await getDrugTargets(hit.id);
+    const target = targets[0];
+    helper.textContent = `Resolved ${drug.name} (${drug.id}) → ${target.approvedSymbol} via ${target.mechanism || 'known mechanism'}.`;
+    document.querySelector('[data-tab="target-tab"]').click();
+    input.value = target.approvedSymbol;
+    document.querySelector('#search-form').requestSubmit();
+  } catch (error) {
+    helper.textContent = error.message;
+    drugInput.focus();
+  } finally {
+    button.disabled = false; button.innerHTML = 'Analyze drug <span>→</span>';
+  }
 });
 renderTarget(targets.JAK1);
 loadLiveTarget('JAK1').catch(() => { document.querySelector('#live-status').textContent = 'Live request unavailable — demo fallback shown'; });
