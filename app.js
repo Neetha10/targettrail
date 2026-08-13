@@ -47,6 +47,7 @@ const OPEN_TARGETS_URL = 'https://api.platform.opentargets.org/api/v4/graphql';
 const CLINICAL_TRIALS_URL = 'https://clinicaltrials.gov/api/v2/studies';
 const TARGET_ALIASES = { 'PD1': 'PDCD1', 'PD-1': 'PDCD1', 'IL17A': 'IL17A', 'IL-17A': 'IL17A' };
 const DRUG_TO_TARGET = {
+  HUMIRA: 'TNF', ADALIMUMAB: 'TNF', INFLIXIMAB: 'TNF', ETANERCEPT: 'TNF',
   BARICITINIB: 'JAK1', UPADACITINIB: 'JAK1', ABROCITINIB: 'JAK1', FILGOTINIB: 'JAK1',
   SECUKINUMAB: 'IL17A', IXEKIZUMAB: 'IL17A', BIMEKIZUMAB: 'IL17A',
   PEMBROLIZUMAB: 'PDCD1', NIVOLUMAB: 'PDCD1', CEMIPLIMAB: 'PDCD1'
@@ -215,7 +216,7 @@ document.querySelector('#drug-search-form').addEventListener('submit', event => 
   const helper = document.querySelector('#drug-helper');
   const target = DRUG_TO_TARGET[clean(drugInput.value)];
   if (!target) {
-    helper.textContent = 'This demo supports Baricitinib, Secukinumab, Pembrolizumab, and related examples.';
+    helper.textContent = 'This demo supports Humira, Baricitinib, Secukinumab, Pembrolizumab, and related examples.';
     drugInput.focus();
     return;
   }
