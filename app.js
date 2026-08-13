@@ -3,6 +3,7 @@ const targets = {
     name: 'JAK1', fullName: 'Janus kinase 1', type: 'KINASE TARGET', score: 91, label: 'Highly validated',
     stats: [['14', 'target-linked drugs', 'Across approved & investigational'], ['48', 'completed trials', 'In the evidence set'], ['9', 'Phase 3 trials', 'Across 5 indications'], ['4', 'approved indications', 'Strong clinical precedent']],
     phases: [['Phase 1', 9], ['Phase 2', 18], ['Phase 3', 9], ['Approved', 4]],
+    diseases: [['rheumatoid arthritis', 71], ['atopic eczema', 60], ['myelofibrosis', 59], ['alopecia areata', 55], ['ulcerative colitis', 51]],
     note: 'Trials shown are representative target-linked records; production data should refresh from public registries.',
     signals: [['Validated in immune-mediated disease', 'Repeated late-stage activity across inflammatory and autoimmune indications.'], ['Breadth across therapeutic areas', 'Clinical evidence spans dermatology, rheumatology, and gastroenterology.'], ['Safety pattern to assess', 'Class-related infection and thrombosis risk warrants indication-specific review.']],
     evidence: [
@@ -16,6 +17,7 @@ const targets = {
     name: 'IL-17A', fullName: 'Interleukin 17A', type: 'CYTOKINE TARGET', score: 88, label: 'Highly validated',
     stats: [['8', 'target-linked drugs', 'Across approved & investigational'], ['36', 'completed trials', 'In the evidence set'], ['8', 'Phase 3 trials', 'Across 4 indications'], ['3', 'approved indications', 'Strong dermatology precedent']],
     phases: [['Phase 1', 6], ['Phase 2', 12], ['Phase 3', 8], ['Approved', 3]],
+    diseases: [['psoriasis vulgaris', 82], ['psoriatic arthritis', 75], ['ankylosing spondylitis', 70], ['hidradenitis suppurativa', 61], ['inflammatory bowel disease', 54]],
     note: 'Signals show a well-established target, especially in dermatology and rheumatology.',
     signals: [['High confidence in psoriasis', 'Multiple IL-17 inhibitors have reached approval in plaque psoriasis.'], ['Clear pathway relevance', 'IL-17A is a central driver of type 17 inflammation in several immune diseases.'], ['Mixed disease translation', 'Success in one inflammatory disease does not ensure efficacy in another; trial context matters.']],
     evidence: [
@@ -29,6 +31,7 @@ const targets = {
     name: 'PD-1', fullName: 'Programmed cell death protein 1', type: 'IMMUNE CHECKPOINT TARGET', score: 96, label: 'Extensively validated',
     stats: [['19', 'target-linked drugs', 'Across approved & investigational'], ['82', 'completed trials', 'In the evidence set'], ['24', 'Phase 3 trials', 'Across oncology indications'], ['14', 'approved indications', 'Broad oncology precedent']],
     phases: [['Phase 1', 12], ['Phase 2', 28], ['Phase 3', 24], ['Approved', 14]],
+    diseases: [['cutaneous melanoma', 86], ['non-small cell lung carcinoma', 83], ['renal cell carcinoma', 80], ['Hodgkin lymphoma', 78], ['hepatocellular carcinoma', 73]],
     note: 'PD-1 is one of the most clinically mature immune-oncology targets.',
     signals: [['Broad oncology validation', 'Checkpoint inhibition has produced approvals in multiple tumor types.'], ['Combination-led development', 'Much of the next-wave evidence is generated in rational combinations and earlier disease settings.'], ['Immune-related safety profile', 'Risk assessment must account for immune-mediated adverse events.']],
     evidence: [
@@ -58,6 +61,11 @@ function renderTarget(targetOrKey) {
   document.querySelector('.score-ring').style.background = `conic-gradient(var(--teal) 0 ${t.score}%, #d4ddcf 0)`;
   document.querySelector('#maturity-label').textContent = t.label;
   document.querySelector('#summary-grid').innerHTML = t.stats.map(([value,label,delta]) => `<article class="stat"><strong>${value}</strong><span>${label}</span><div class="delta">${delta}</div></article>`).join('');
+  const diseaseRows = t.diseases || [];
+  document.querySelector('#disease-grid').innerHTML = diseaseRows.slice(0, 5).map(([name, score], index) => {
+    const label = score >= 70 ? 'Strong evidence association' : score >= 50 ? 'Moderate evidence association' : 'Emerging evidence association';
+    return `<article class="disease-card"><span class="disease-rank">#${index + 1} ASSOCIATION</span><strong class="disease-score">${score}<small>/100</small></strong><div class="disease-name">${name}</div><div class="association-label">${label}</div><div class="association-bar"><span style="width:${score}%"></span></div></article>`;
+  }).join('') || '<article class="disease-card"><div class="disease-name">No disease associations were returned.</div></article>';
   const max = Math.max(1, ...t.phases.map(([,v])=>v));
   document.querySelector('#phase-chart').innerHTML = t.phases.map(([label,value]) => `<div class="bar-item"><span class="bar-value">${value}</span><div class="bar" style="height:${(value/max)*125}px"></div><span class="bar-label">${label}</span></div>`).join('');
   document.querySelector('#chart-note').textContent = t.note;
@@ -143,7 +151,8 @@ function liveTargetToView(target, trials) {
   const phase3 = candidates.filter(row => row.maxClinicalStage === 'PHASE_3').length;
   const trialCounts = { 'Phase 1': 0, 'Phase 2': 0, 'Phase 3': 0, Other: 0 };
   trials.forEach(study => { trialCounts[trialPhase(study)] += 1; });
-  const topAssociation = target.associatedDiseases?.rows?.[0];
+  const associations = (target.associatedDiseases?.rows || []).filter(row => row.disease?.name).slice(0, 5);
+  const topAssociation = associations[0];
   const targetScore = Math.min(99, Math.round(45 + Math.min(candidateCount, 30) * 1.25 + approvals * 2 + phase3 * 1.5));
   const label = targetScore >= 90 ? 'Highly validated' : targetScore >= 75 ? 'Clinically established' : 'Emerging evidence';
   const candidateSummary = candidates.slice(0, 3).map(row => `${row.drug?.name || 'Unnamed drug'} (${stageLabel(row.maxClinicalStage)})`).join(', ');
@@ -156,6 +165,7 @@ function liveTargetToView(target, trials) {
     name: target.approvedSymbol, fullName: target.approvedName || target.approvedSymbol, type: 'LIVE OPEN TARGETS RECORD', score: targetScore, label, live: true,
     stats: [[String(candidateCount), 'target-linked drugs', 'Open Targets clinical candidates'], [String(trials.length), 'registry trials returned', `ClinicalTrials.gov: ${target.approvedSymbol}`], [String(phase3), 'Phase 3 candidates', 'Open Targets maximum stage'], [String(approvals), 'approved candidates', 'Open Targets maximum stage']],
     phases: [['Phase 1', trialCounts['Phase 1']], ['Phase 2', trialCounts['Phase 2']], ['Phase 3', trialCounts['Phase 3']], ['Other', trialCounts.Other]],
+    diseases: associations.map(row => [row.disease.name, Math.round(row.score * 100)]),
     note: `Live ClinicalTrials.gov search returned ${trials.length} records for “${target.approvedSymbol}”. Trial counts are registry search results, not efficacy outcomes.`,
     signals: [
       ['Target–disease evidence', topAssociation ? `${topAssociation.disease?.name || 'Top disease'} has the highest returned Open Targets association score (${Math.round(topAssociation.score * 100)}/100).` : 'No target-disease associations returned.'],
