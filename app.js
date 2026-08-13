@@ -40,38 +40,151 @@ const targets = {
   }
 };
 
+const OPEN_TARGETS_URL = 'https://api.platform.opentargets.org/api/v4/graphql';
+const CLINICAL_TRIALS_URL = 'https://clinicaltrials.gov/api/v2/studies';
+const TARGET_ALIASES = { 'PD1': 'PDCD1', 'PD-1': 'PDCD1', 'IL17A': 'IL17A', 'IL-17A': 'IL17A' };
 const clean = value => value.toUpperCase().replace(/[^A-Z0-9]/g, '');
 const state = { current: 'JAK1' };
 const input = document.querySelector('#target-input');
 const suggestions = document.querySelector('#suggestions');
 
-function renderTarget(key) {
-  const t = targets[key]; if (!t) return;
-  state.current = key; input.value = t.name;
+function renderTarget(targetOrKey) {
+  const t = typeof targetOrKey === 'string' ? targets[targetOrKey] : targetOrKey;
+  if (!t) return;
+  state.current = t.name; input.value = t.name;
   document.querySelector('#target-type').textContent = t.type;
   document.querySelector('#target-name').innerHTML = `${t.name} <span>${t.fullName}</span>`;
   document.querySelector('#maturity-score').textContent = t.score;
   document.querySelector('.score-ring').style.background = `conic-gradient(var(--teal) 0 ${t.score}%, #d4ddcf 0)`;
   document.querySelector('#maturity-label').textContent = t.label;
   document.querySelector('#summary-grid').innerHTML = t.stats.map(([value,label,delta]) => `<article class="stat"><strong>${value}</strong><span>${label}</span><div class="delta">${delta}</div></article>`).join('');
-  const max = Math.max(...t.phases.map(([,v])=>v));
+  const max = Math.max(1, ...t.phases.map(([,v])=>v));
   document.querySelector('#phase-chart').innerHTML = t.phases.map(([label,value]) => `<div class="bar-item"><span class="bar-value">${value}</span><div class="bar" style="height:${(value/max)*125}px"></div><span class="bar-label">${label}</span></div>`).join('');
   document.querySelector('#chart-note').textContent = t.note;
   document.querySelector('#signal-list').innerHTML = t.signals.map(([title,text]) => `<div class="signal"><strong>${title}</strong><span>${text}</span></div>`).join('');
-  document.querySelector('#evidence-grid').innerHTML = t.evidence.map(([source,phase,title,text,citation]) => `<article class="evidence-card"><div class="evidence-top"><span class="evidence-tag">${source}</span><span class="phase-tag">${phase}</span></div><h4>${title}</h4><p>${text}</p><a class="citation" href="https://clinicaltrials.gov/search?term=${encodeURIComponent(citation)}" target="_blank" rel="noreferrer">${citation}</a></article>`).join('');
+  document.querySelector('#evidence-grid').innerHTML = t.evidence.map(([source,phase,title,text,citation,url]) => `<article class="evidence-card"><div class="evidence-top"><span class="evidence-tag">${source}</span><span class="phase-tag">${phase}</span></div><h4>${title}</h4><p>${text}</p><a class="citation" href="${url || `https://clinicaltrials.gov/search?term=${encodeURIComponent(citation)}`}" target="_blank" rel="noreferrer">${citation}</a></article>`).join('');
   document.querySelector('#opportunity-text').textContent = t.opportunity;
   document.querySelector('#opportunity-score').textContent = t.opportunityScore;
   document.querySelector('#opportunity-label').textContent = t.opportunityLabel;
+  document.querySelector('#trial-source').textContent = t.live ? 'Open Targets + ClinicalTrials.gov • live' : 'Demo fallback data';
+  document.querySelector('#live-status').textContent = t.live ? 'Live public-data workspace' : 'Demo fallback workspace';
   suggestions.innerHTML = '';
+}
+
+async function openTargetsQuery(query, variables) {
+  const response = await fetch(OPEN_TARGETS_URL, {
+    method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ query, variables })
+  });
+  const payload = await response.json();
+  if (!response.ok || payload.errors?.length) throw new Error(payload.errors?.[0]?.message || 'Open Targets request failed');
+  return payload.data;
+}
+
+async function findTarget(searchTerm) {
+  const query = `query FindTarget($queryString: String!) {
+    search(queryString: $queryString, entityNames: ["target"]) { hits { id entity name description } }
+  }`;
+  const data = await openTargetsQuery(query, { queryString: TARGET_ALIASES[searchTerm.toUpperCase()] || searchTerm });
+  return data.search.hits.find(hit => hit.entity === 'target') || null;
+}
+
+async function getTargetRecord(ensemblId) {
+  const query = `query TargetTrail($ensemblId: String!) {
+    target(ensemblId: $ensemblId) {
+      id approvedSymbol approvedName
+      tractability { modality label value }
+      associatedDiseases(page: { index: 0, size: 6 }) { count rows { disease { id name } score } }
+      drugAndClinicalCandidates {
+        count
+        rows { maxClinicalStage drug { id name } diseases { disease { id name } } }
+      }
+    }
+  }`;
+  const data = await openTargetsQuery(query, { ensemblId });
+  if (!data.target) throw new Error('No Open Targets record found');
+  return data.target;
+}
+
+async function getClinicalTrials(symbol) {
+  const url = new URL(CLINICAL_TRIALS_URL);
+  url.searchParams.set('query.term', symbol);
+  url.searchParams.set('pageSize', '100');
+  url.searchParams.set('format', 'json');
+  const response = await fetch(url);
+  if (!response.ok) throw new Error('ClinicalTrials.gov request failed');
+  const payload = await response.json();
+  return payload.studies || [];
+}
+
+function stageLabel(stage = '') {
+  return ({ APPROVAL: 'Approved', PHASE_4: 'Phase 4', PHASE_3: 'Phase 3', PHASE_2: 'Phase 2', PHASE_1: 'Phase 1', PRECLINICAL: 'Preclinical' })[stage] || 'Clinical';
+}
+
+function trialPhase(study) {
+  const phases = study.protocolSection?.designModule?.phases || [];
+  if (phases.includes('PHASE3')) return 'Phase 3';
+  if (phases.includes('PHASE2')) return 'Phase 2';
+  if (phases.includes('PHASE1') || phases.includes('EARLY_PHASE1')) return 'Phase 1';
+  return 'Other';
+}
+
+function clinicalTrialEvidence(study) {
+  const protocol = study.protocolSection || {};
+  const id = protocol.identificationModule?.nctId || 'ClinicalTrials.gov record';
+  const title = protocol.identificationModule?.briefTitle || 'Clinical trial record';
+  const status = protocol.statusModule?.overallStatus || 'Status unavailable';
+  return ['CLINICALTRIALS.GOV', trialPhase(study).toUpperCase(), title, `Live registry record: ${status.replaceAll('_', ' ').toLowerCase()}.`, id, `https://clinicaltrials.gov/study/${id}`];
+}
+
+function liveTargetToView(target, trials) {
+  const candidates = target.drugAndClinicalCandidates?.rows || [];
+  const candidateCount = target.drugAndClinicalCandidates?.count || candidates.length;
+  const approvals = candidates.filter(row => row.maxClinicalStage === 'APPROVAL').length;
+  const phase3 = candidates.filter(row => row.maxClinicalStage === 'PHASE_3').length;
+  const trialCounts = { 'Phase 1': 0, 'Phase 2': 0, 'Phase 3': 0, Other: 0 };
+  trials.forEach(study => { trialCounts[trialPhase(study)] += 1; });
+  const topAssociation = target.associatedDiseases?.rows?.[0];
+  const targetScore = Math.min(99, Math.round(45 + Math.min(candidateCount, 30) * 1.25 + approvals * 2 + phase3 * 1.5));
+  const label = targetScore >= 90 ? 'Highly validated' : targetScore >= 75 ? 'Clinically established' : 'Emerging evidence';
+  const candidateSummary = candidates.slice(0, 3).map(row => `${row.drug?.name || 'Unnamed drug'} (${stageLabel(row.maxClinicalStage)})`).join(', ');
+  const evidence = [
+    ['OPEN TARGETS', 'LIVE GRAPHQL', `${candidateCount} drug and clinical candidates`, candidateSummary ? `Representative target-linked candidates: ${candidateSummary}.` : 'No target-linked drug rows were returned.', `Open Targets: ${target.approvedSymbol}`, `https://platform.opentargets.org/target/${target.id}`],
+    ...trials.slice(0, 2).map(clinicalTrialEvidence)
+  ];
+  while (evidence.length < 3) evidence.push(['CLINICALTRIALS.GOV', 'LIVE SEARCH', 'No additional registry result in this search', 'Try a target synonym or inspect the Open Targets linked-drug list.', 'ClinicalTrials.gov search', `https://clinicaltrials.gov/search?term=${encodeURIComponent(target.approvedSymbol)}`]);
+  return {
+    name: target.approvedSymbol, fullName: target.approvedName || target.approvedSymbol, type: 'LIVE OPEN TARGETS RECORD', score: targetScore, label, live: true,
+    stats: [[String(candidateCount), 'target-linked drugs', 'Open Targets clinical candidates'], [String(trials.length), 'registry trials returned', `ClinicalTrials.gov: ${target.approvedSymbol}`], [String(phase3), 'Phase 3 candidates', 'Open Targets maximum stage'], [String(approvals), 'approved candidates', 'Open Targets maximum stage']],
+    phases: [['Phase 1', trialCounts['Phase 1']], ['Phase 2', trialCounts['Phase 2']], ['Phase 3', trialCounts['Phase 3']], ['Other', trialCounts.Other]],
+    note: `Live ClinicalTrials.gov search returned ${trials.length} records for “${target.approvedSymbol}”. Trial counts are registry search results, not efficacy outcomes.`,
+    signals: [
+      ['Target–disease evidence', topAssociation ? `${topAssociation.disease?.name || 'Top disease'} has the highest returned Open Targets association score (${Math.round(topAssociation.score * 100)}/100).` : 'No target-disease associations returned.'],
+      ['Clinical development breadth', `${candidateCount} target-linked drug or clinical-candidate records are available from Open Targets.`],
+      ['Interpret with care', 'Association and development-stage signals prioritize research; they do not establish treatment efficacy or safety.']
+    ], evidence,
+    opportunity: topAssociation ? `Start with ${topAssociation.disease?.name || 'the highest-ranked association'}, then compare unmet need and active pipeline activity before proposing a new indication.` : 'Add disease-burden and pipeline data before prioritizing a potential new indication.',
+    opportunityScore: topAssociation ? Math.round(topAssociation.score * 100) : 0, opportunityLabel: 'Evidence association signal'
+  };
+}
+
+async function loadLiveTarget(searchTerm) {
+  document.querySelector('#live-status').textContent = 'Querying live public data…';
+  document.querySelector('#trial-source').textContent = 'Loading live sources…';
+  const hit = await findTarget(searchTerm);
+  if (!hit) throw new Error(`No target found for “${searchTerm}”`);
+  const target = await getTargetRecord(hit.id);
+  const trials = await getClinicalTrials(target.approvedSymbol);
+  renderTarget(liveTargetToView(target, trials));
 }
 function showSuggestions() {
   const q = clean(input.value);
   const matches = Object.entries(targets).filter(([key,t]) => key.includes(q) || clean(t.name).includes(q) || clean(t.fullName).includes(q));
   suggestions.innerHTML = matches.length && q ? matches.map(([key,t]) => `<button type="button" data-key="${key}">${t.name}<small>${t.fullName}</small></button>`).join('') : '';
 }
-document.querySelector('#search-form').addEventListener('submit', e => { e.preventDefault(); const key = Object.keys(targets).find(k => clean(k) === clean(input.value) || clean(targets[k].name) === clean(input.value)); if (key) { renderTarget(key); document.querySelector('#results').scrollIntoView({behavior:'smooth', block:'start'}); } else { input.setCustomValidity('Try JAK1, IL-17A, or PD-1 for this prototype.'); input.reportValidity(); } });
+document.querySelector('#search-form').addEventListener('submit', async e => { e.preventDefault(); const requested = input.value.trim(); if (!requested) return; try { await loadLiveTarget(requested); document.querySelector('#results').scrollIntoView({behavior:'smooth', block:'start'}); } catch (error) { const key = Object.keys(targets).find(k => clean(k) === clean(requested) || clean(targets[k].name) === clean(requested)); if (key) { renderTarget(targets[key]); document.querySelector('#live-status').textContent = 'Live request unavailable — demo fallback shown'; } else { input.setCustomValidity(error.message); input.reportValidity(); } } });
 input.addEventListener('input', () => { input.setCustomValidity(''); showSuggestions(); });
-suggestions.addEventListener('click', e => { const key = e.target.closest('button')?.dataset.key; if (key) renderTarget(key); });
-document.querySelector('.quick-targets').addEventListener('click', e => { const target = e.target.dataset.target; if (target) renderTarget(target); });
+suggestions.addEventListener('click', e => { const key = e.target.closest('button')?.dataset.key; if (key) { input.value = targets[key].name; document.querySelector('#search-form').requestSubmit(); } });
+document.querySelector('.quick-targets').addEventListener('click', e => { const target = e.target.dataset.target; if (target) { input.value = target; document.querySelector('#search-form').requestSubmit(); } });
 document.addEventListener('click', e => { if (!e.target.closest('.input-wrap')) suggestions.innerHTML = ''; });
-renderTarget('JAK1');
+renderTarget(targets.JAK1);
+loadLiveTarget('JAK1').catch(() => { document.querySelector('#live-status').textContent = 'Live request unavailable — demo fallback shown'; });

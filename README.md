@@ -4,11 +4,20 @@ Evidence-backed clinical trial intelligence for biological targets.
 
 ## Demo
 
-Open `index.html` in a browser. Search for **JAK1**, **IL-17A**, or **PD-1** to explore a target's clinical maturity, representative trials, safety context, and opportunity signal.
+Open `index.html` in a browser. Search for **JAK1**, **IL-17A**, or **PD-1** to explore a target's clinical maturity, linked drug candidates, live registry-trial records, and disease-association evidence.
+
+## Live data
+
+The browser app makes direct public requests to:
+
+- Open Targets Platform GraphQL API: target resolution, tractability, target-disease associations, and drug/clinical-candidate records
+- ClinicalTrials.gov API v2: live NCT records, phase, and recruitment status
+
+If a request is unavailable, the original sample data is shown as a clearly labelled fallback.
 
 ## Scope
 
-This hackathon prototype uses illustrative, public-data-style evidence cards. It is a research-prioritization interface only—not clinical guidance or proof of efficacy.
+This hackathon prototype is a research-prioritization interface only—not clinical guidance or proof of efficacy. Clinical-trial phase and status do not establish a treatment's efficacy or safety.
 
 ## Next integrations
 
