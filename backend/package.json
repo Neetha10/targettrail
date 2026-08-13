@@ -1,7 +1,7 @@
 {
-  "name": "@targettrail/research-api",
+  "name": "@novatarget/research-api",
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "AWS Lambda backend for TargetTrail research-agent orchestration."
+  "description": "AWS Lambda backend for NovaTarget research-agent orchestration."
 }

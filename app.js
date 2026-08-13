@@ -111,7 +111,7 @@ async function findTarget(searchTerm) {
 }
 
 async function getTargetRecord(ensemblId) {
-  const query = `query TargetTrail($ensemblId: String!) {
+  const query = `query NovaTarget($ensemblId: String!) {
     target(ensemblId: $ensemblId) {
       id approvedSymbol approvedName
       tractability { modality label value }

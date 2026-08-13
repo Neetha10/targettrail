@@ -1,4 +1,4 @@
-# TargetTrail
+# NovaTarget
 
 Evidence-backed clinical trial intelligence for biological targets.
 

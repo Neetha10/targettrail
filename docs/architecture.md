@@ -1,4 +1,4 @@
-# TargetTrail architecture
+# NovaTarget architecture
 
 ```text
 Drug input

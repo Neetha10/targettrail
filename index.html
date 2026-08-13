@@ -3,18 +3,18 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="TargetTrail — evidence-backed clinical intelligence for drug targets." />
-    <title>TargetTrail — Clinical Intelligence</title>
+    <meta name="description" content="NovaTarget — evidence-backed clinical intelligence for drug targets." />
+    <title>NovaTarget — Clinical Intelligence</title>
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
     <main>
       <nav class="topbar" aria-label="Main navigation">
-        <a class="brand" href="#top" aria-label="TargetTrail home"><span class="brand-mark">↗</span> targettrail</a>
+        <a class="brand" href="#top" aria-label="NovaTarget home"><span class="brand-mark">↗</span> novatarget</a>
         <div class="nav-meta"><span class="status-dot"></span><span id="live-status">Live public-data workspace</span></div>
       </nav>
 
-      <div class="workspace-tabs" role="tablist" aria-label="TargetTrail workspaces">
+      <div class="workspace-tabs" role="tablist" aria-label="NovaTarget workspaces">
         <button class="workspace-tab active" type="button" role="tab" aria-selected="true" aria-controls="pipeline-tab" data-tab="pipeline-tab"><span>01</span> Repurposing pipeline</button>
         <button class="workspace-tab" type="button" role="tab" aria-selected="false" aria-controls="target-tab" data-tab="target-tab"><span>02</span> Target intelligence</button>
       </div>
@@ -23,7 +23,7 @@
         <section class="pipeline-hero" id="top">
           <p class="eyebrow">DRUG REPURPOSING WORKSPACE</p>
           <h1>Find the next<br /><em>indication trail.</em></h1>
-          <p class="intro">Start with an existing drug. TargetTrail maps its mechanism, finds clinical analogs, detects indication gaps, and ranks evidence-backed research opportunities.</p>
+          <p class="intro">Start with an existing drug. NovaTarget maps its mechanism, finds clinical analogs, detects indication gaps, and ranks evidence-backed research opportunities.</p>
           <form class="pipeline-input-card" id="drug-search-form">
             <div class="pipeline-input-copy"><span class="input-label">START WITH A DRUG</span><strong>Input → canonical drug ID → evidence-backed candidate indications</strong></div>
             <div class="drug-input-wrap"><label class="sr-only" for="drug-input">Drug name</label><input id="drug-input" autocomplete="off" placeholder="e.g. Humira or Baricitinib" /><span id="drug-helper">Try Humira, Baricitinib, Secukinumab, or Pembrolizumab</span></div>
@@ -32,7 +32,7 @@
         </section>
 
         <section class="pipeline-section">
-          <div class="section-title"><div><p class="eyebrow">HOW TARGETTRAIL REASONS</p><h3>Evidence pipeline</h3></div><span class="evidence-note">Each stage adds a check, citation, or confidence signal</span></div>
+          <div class="section-title"><div><p class="eyebrow">HOW NOVATARGET REASONS</p><h3>Evidence pipeline</h3></div><span class="evidence-note">Each stage adds a check, citation, or confidence signal</span></div>
           <div class="pipeline-stages">
             <article class="pipeline-stage"><span class="stage-number">A</span><h4>Resolve inputs</h4><p>Map every drug name to a canonical ChEMBL / DrugBank ID so all source records connect reliably.</p><span class="stage-source">ChEMBL · DrugBank</span></article>
             <article class="pipeline-stage"><span class="stage-number">B</span><h4>Expand mechanism</h4><p>Find direct target analogs first, then optional pathway or gene-family neighbors at lower confidence.</p><span class="stage-source">Open Targets · ChEMBL</span></article>
@@ -52,7 +52,7 @@
         </section>
 
         <section class="agent-section">
-          <div class="section-title"><div><p class="eyebrow">TARGETTRAIL RESEARCH AGENT</p><h3>Specialists that build the evidence ledger</h3></div><span class="agent-orchestrator">ORCHESTRATOR: ranks only after validation</span></div>
+          <div class="section-title"><div><p class="eyebrow">NOVATARGET RESEARCH AGENT</p><h3>Specialists that build the evidence ledger</h3></div><span class="agent-orchestrator">ORCHESTRATOR: ranks only after validation</span></div>
           <div class="agent-grid">
             <article class="agent-card"><span class="agent-icon">01</span><div><h4>Identity agent</h4><p>Resolves drug names into canonical identifiers and catches ambiguous records.</p><small>ChEMBL · DrugBank</small></div></article>
             <article class="agent-card"><span class="agent-icon">02</span><div><h4>Mechanism agent</h4><p>Finds direct targets, same-target analogs, and lower-confidence pathway neighbors.</p><small>Open Targets · ChEMBL</small></div></article>
@@ -81,7 +81,7 @@
           </div>
           <div class="quick-targets"><span>Try:</span><button type="button" data-target="JAK1">JAK1</button><button type="button" data-target="IL17A">IL-17A</button><button type="button" data-target="PDCD1">PD-1</button></div>
         </form>
-        <a class="download-report" href="../outputs/targettrail-repurposing-report.pdf" download="targettrail-repurposing-report.pdf">Download repurposing brief <span>↓</span></a>
+        <a class="download-report" href="../outputs/novatarget-repurposing-report.pdf" download="novatarget-repurposing-report.pdf">Download repurposing brief <span>↓</span></a>
       </section>
 
       <section class="results" id="results" aria-live="polite">
@@ -142,7 +142,7 @@
       </section>
       </section>
     </main>
-    <footer><span>TargetTrail is a research-prioritization prototype.</span> It does not provide clinical recommendations or establish efficacy.</footer>
+    <footer><span>NovaTarget is a research-prioritization prototype.</span> It does not provide clinical recommendations or establish efficacy.</footer>
     <script src="app.js"></script>
   </body>
 </html>
