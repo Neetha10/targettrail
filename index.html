@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="TargetTrail — evidence-backed clinical intelligence for drug targets." />
+    <title>TargetTrail — Clinical Intelligence</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main>
+      <nav class="topbar" aria-label="Main navigation">
+        <a class="brand" href="#top" aria-label="TargetTrail home"><span class="brand-mark">↗</span> targettrail</a>
+        <div class="nav-meta"><span class="status-dot"></span> Research intelligence workspace</div>
+      </nav>
+
+      <section class="hero" id="top">
+        <p class="eyebrow">TARGET-TO-TRIAL INTELLIGENCE</p>
+        <h1>Follow the clinical<br /><em>trail of a target.</em></h1>
+        <p class="intro">See how a biological target has performed across drugs, indications, and trial phases — with the evidence behind every signal.</p>
+        <form class="search-panel" id="search-form">
+          <label for="target-input">Biological target</label>
+          <div class="search-row">
+            <div class="input-wrap">
+              <span class="search-icon">⌕</span>
+              <input id="target-input" autocomplete="off" value="JAK1" placeholder="Try JAK1, IL-17A, PD-1..." />
+              <div class="suggestions" id="suggestions" aria-live="polite"></div>
+            </div>
+            <button type="submit">Explore target <span>→</span></button>
+          </div>
+          <div class="quick-targets"><span>Try:</span><button type="button" data-target="JAK1">JAK1</button><button type="button" data-target="IL17A">IL-17A</button><button type="button" data-target="PDCD1">PD-1</button></div>
+        </form>
+      </section>
+
+      <section class="results" id="results" aria-live="polite">
+        <div class="result-heading">
+          <div>
+            <p class="eyebrow" id="target-type">KINASE TARGET</p>
+            <h2 id="target-name">JAK1 <span>Janus kinase 1</span></h2>
+          </div>
+          <div class="maturity-card">
+            <div class="score-ring"><span id="maturity-score">91</span></div>
+            <div><p>Clinical maturity</p><strong id="maturity-label">Highly validated</strong></div>
+          </div>
+        </div>
+
+        <div class="summary-grid" id="summary-grid"></div>
+
+        <div class="two-column">
+          <section class="panel trial-panel">
+            <div class="panel-head">
+              <div><p class="eyebrow">DEVELOPMENT HISTORY</p><h3>Trials by phase</h3></div>
+              <span class="source-chip">ClinicalTrials.gov</span>
+            </div>
+            <div class="phase-chart" id="phase-chart"></div>
+            <p class="chart-note" id="chart-note"></p>
+          </section>
+
+          <section class="panel signal-panel">
+            <div class="panel-head"><div><p class="eyebrow">TARGET SIGNAL</p><h3>What the evidence says</h3></div></div>
+            <div class="signal-list" id="signal-list"></div>
+          </section>
+        </div>
+
+        <section class="evidence-section">
+          <div class="section-title"><div><p class="eyebrow">EVIDENCE LEDGER</p><h3>Representative clinical evidence</h3></div><span class="evidence-note">Every insight should trace to a primary source</span></div>
+          <div class="evidence-grid" id="evidence-grid"></div>
+        </section>
+
+        <section class="opportunity panel">
+          <div class="opportunity-copy"><p class="eyebrow">NEXT QUESTION</p><h3>Where might this target go next?</h3><p id="opportunity-text"></p></div>
+          <div class="opportunity-score"><span>Opportunity signal</span><strong id="opportunity-score">74</strong><em id="opportunity-label">Promising to investigate</em></div>
+        </section>
+      </section>
+    </main>
+    <footer><span>TargetTrail is a research-prioritization prototype.</span> It does not provide clinical recommendations or establish efficacy.</footer>
+    <script src="app.js"></script>
+  </body>
+</html>
