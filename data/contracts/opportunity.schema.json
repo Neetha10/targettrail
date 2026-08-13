@@ -9,6 +9,15 @@
     "compositeScore": { "type": "integer", "minimum": 0, "maximum": 100 },
     "confidenceTier": { "enum": ["High-priority hypothesis", "Promising - needs validation", "Exploratory signal"] },
     "mechanismRationale": { "type": "string" },
+    "marketContext": {
+      "type": "object",
+      "properties": {
+        "source": { "const": "Convoke MCP" },
+        "totalProgramCount": { "type": "integer", "minimum": 0 },
+        "programs": { "type": "array" },
+        "catalysts": { "type": "array" }
+      }
+    },
     "evidence": {
       "type": "array",
       "items": {

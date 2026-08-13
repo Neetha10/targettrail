@@ -16,7 +16,8 @@ const json = (statusCode, body) => ({
  * Intended routes:
  * - POST /score: invokes the Ranking Agent's transparent composite score
  * - POST /evidence: calls Bright Data server-side and returns original public URLs + snippets
- * - POST /research: runs the deterministic multi-agent report workflow
+ * - POST /research: runs the deterministic multi-agent report workflow; accepts
+ *   normalized Convoke context collected by an authenticated MCP client
  */
 export async function handler(event) {
   const path = event.rawPath || event.path || '/';

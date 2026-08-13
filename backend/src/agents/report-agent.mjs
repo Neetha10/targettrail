@@ -1,5 +1,5 @@
 /** Creates one portable, citation-first record for a drug-disease research hypothesis. */
-export function generateOpportunityReport({ drug, candidateDisease, mechanism, trials = [], evidence = [], safety, ranking }) {
+export function generateOpportunityReport({ drug, candidateDisease, mechanism, trials = [], evidence = [], safety, marketContext, ranking }) {
   if (!drug || !candidateDisease) throw new Error('drug and candidateDisease are required');
   return {
     drug,
@@ -8,6 +8,7 @@ export function generateOpportunityReport({ drug, candidateDisease, mechanism, t
     trials,
     evidence,
     safety,
+    marketContext,
     compositeScore: ranking?.score ?? null,
     confidenceTier: ranking?.tier ?? 'Not scored',
     disclaimer: 'Research-prioritization hypothesis only; not a treatment recommendation.'

@@ -23,7 +23,7 @@ This hackathon prototype is a research-prioritization interface only—not clini
 
 - ClinicalTrials.gov: trial phase, status, identifiers, and outcomes
 - Open Targets / ChEMBL: target–drug–disease relationships
-- Convoke: unmet-need signals
+- Convoke MCP: live program-pipeline and catalyst context
 - Bright Data: monitored public pipeline and regulatory updates
 
 ### Bright Data Evidence Agent
@@ -43,3 +43,9 @@ docs/                              Architecture and data-source guidance
 ### Agent modules
 
 `backend/src/agents/` keeps the responsibilities separate: `identity-agent`, `mechanism-agent`, `trial-agent`, `evidence-agent`, `safety-agent`, `ranking-agent`, and `report-agent`. The Lambda handler invokes `agent-orchestrator.mjs`, which coordinates these modules.
+
+### Convoke market-context lane
+
+An authenticated Convoke MCP client queries the **Program Tracker** and **Catalyst Calendar**, then sends only normalized results in the `convoke` field to `POST /research`. `convoke-agent.mjs` preserves drug, indication, stage, organization, target, trial, and catalyst context in the final report as `marketContext`.
+
+Convoke credentials remain in the MCP client and are never placed in the browser, Lambda environment, or repository. Market context is intentionally not a component of the composite opportunity score: program activity and catalyst timing can guide research review, but do not independently establish efficacy, safety, or patient unmet need.
